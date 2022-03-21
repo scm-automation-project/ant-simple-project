@@ -1,0 +1,87 @@
+<project name="HelloWorld" basedir="." default="main">
+
+	<property name="src.dir" value="src" />
+	<property name="build.dir" value="build" />
+	<property name="classes.dir" value="${build.dir}/classes" />
+	<property name="jar.dir" value="${build.dir}/jar" />
+	<property name="main-class" value="oata.HelloWorld" />
+
+	<path id="ws.ant.lib">
+		<fileset dir="./lib" includes="**/*.jar" excludes="**/*.sha1" />
+	</path>
+	
+	<path id="ws.spring">
+		<fileset dir="./spring" excludes="**/*pom*" />
+	</path>
+	
+	<path id="ws.ant.sql.lib">
+		<fileset dir="./sql-libs" excludes="**/*test*.jar" />
+	</path>
+	
+	<!--
+	
+	ant.pathIdIncludes = ws.ant.*, .*spring.*
+	
+	ant.pathIdIncludes = ws.ant.lib, ws.spring
+
+	-->	
+
+	
+	<!-- *********************************** -->
+	<!-- Define White Source section - START -->
+	<!-- *********************************** -->
+
+	<property name="whitesource.apikey" value="76671cdf15b1445eb45cb24ed0bbe0a23a0fd7c1b99e4d4dabe4880a240d5c13" />
+	<property name="whitesource.wssUrl" value="https://dev.whitesourcesoftware.com/agent"/>
+	<!-- <taskdef name="whitesource" classname="org.whitesource.ant.WhitesourceTask"> -->
+		<!-- <classpath path="./lib/whitesource-ant-plugin-18.10.3-jar-with-dependencies.jar" /> -->
+	<!-- </taskdef> -->
+
+	<target name="whitesource" description="white source ant plugin">
+		<whitesource apikey="${whitesource.apikey}" wssUrl="${whitesource.wssUrl}" product="product_name_by_build.xml">
+
+			<checkpolicies reportdir="."/>
+			
+			<module name="libs-module">
+				<path refid="ws.ant.lib" />
+				<path refid="ws.ant.sql.lib" />
+			</module>
+			
+			<module name="spring-module">
+				<path refid="ws.spring" />
+			</module>
+		</whitesource>
+	</target>
+
+	<!-- ********************************** -->
+	<!-- Define White Source section - END  -->
+	<!-- ********************************** -->
+
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="compile">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="true" />
+	</target>
+
+	<target name="jar" depends="compile">
+		<mkdir dir="${jar.dir}" />
+		<jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="run" depends="jar">
+		<java jar="${jar.dir}/${ant.project.name}.jar" fork="true" />
+	</target>
+
+	<target name="clean-build" depends="clean,whitesource,jar" />
+
+	<target name="main" depends="clean,run" />
+
+</project>
